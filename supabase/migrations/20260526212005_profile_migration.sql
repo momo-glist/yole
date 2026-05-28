@@ -1,7 +1,7 @@
 create table if not exists profiles(
     id uuid primary key references auth.users not null,
     full_name text,
-    english_level text,
+    language_level text,
     motivations text[],
     interests text[],
     onboarding_completed boolean default false,
@@ -25,7 +25,7 @@ with check (auth.uid() =  id);
 create policy "User can update own profile"
 on public.profiles
 for update 
-using (auth.uid() =  id);
+using (auth.uid() =  id)
 with check (auth.uid() =  id);
 
 revoke update on table public.profiles from authenticated;
@@ -36,7 +36,7 @@ grant select on table public.profiles to authenticated;
 grant insert (
     id,
     full_name,
-    english_level,
+    language_level,
     motivations,
     interests,
     onboarding_completed,
@@ -46,7 +46,7 @@ grant insert (
 grant update (
     id,
     full_name,
-    english_level,
+    language_level,
     motivations,
     interests,
     onboarding_completed,
