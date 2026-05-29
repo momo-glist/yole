@@ -1,11 +1,10 @@
 import { supabase } from "@/lib/supabase";
 import Entypo from "@expo/vector-icons/Entypo";
-import { makeRedirectUri } from "expo-auth-session";
 import { useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import Animated from "react-native-reanimated";
 
-const redirectTo = makeRedirectUri();
+const redirectTo = "yololearn://";
 
 export default function EmailAuth({
   onBack,
