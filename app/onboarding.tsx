@@ -1,3 +1,4 @@
+import { Paywall } from "@/components/subscriptions/Paywall";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/theme";
 import { useAuth } from "@/ctx/AuthContext";
@@ -363,6 +364,8 @@ export default function Onboarding() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      <Paywall visible={showPaywall} onClose={() => router.replace("/")} />
     </SafeAreaView>
   );
 }
