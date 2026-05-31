@@ -115,7 +115,7 @@ export function Paywall({
     try {
       setIsStartingTrial(true);
 
-      const { error } = await supabase.functions.invoke("start-trial", {
+      const { error } = await supabase.functions.invoke("start-trail", {
         body: {
           planId: selectedPlan.id,
         },
@@ -312,8 +312,7 @@ export function Paywall({
           {/* Testimonial */}
           <View style={styles.testimonial}>
             <Text style={styles.testimonialText}>
-              Yolo est la meilleur application de cours d'anglais que j'ai
-              utilisé!
+              {"Yolo est la meilleur application de cours d'anglais que j'ai utilisé!"}
             </Text>
             <Text style={styles.testimonialAuthor}>- Mahamadou Sogodogo</Text>
           </View>
@@ -325,7 +324,7 @@ export function Paywall({
             </Pressable>
             <Text style={styles.legalSeparator}>•</Text>
             <Pressable>
-              <Text style={styles.legalLink}>Conditions d'utilisation</Text>
+              <Text style={styles.legalLink}>{"Conditions d'utilisation"}</Text>
             </Pressable>
             <Text style={styles.legalSeparator}>•</Text>
             <Pressable>
