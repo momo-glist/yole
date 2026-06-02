@@ -20,7 +20,7 @@ export interface chapter {
 
 export interface CourseData {
   chapters: chapter[];
-  scenario: conversationScenario[];
+  scenarios: conversationScenario[];
 }
 
 export interface conversationScenario {
@@ -32,7 +32,7 @@ export interface conversationScenario {
   goal: string;
   tasks: string[];
   difficulty: "beginner" | "intermediate" | "advanced";
-  phraseBookEntry?: PhraseBookEntry[];
+  phrasebook?: PhraseBookEntry[];
 }
 
 interface PhraseBookEntry {
@@ -49,6 +49,7 @@ interface EnglishPrompt {
 export interface Word {
   characters: string;
   ipa: string;
+  french: string;
   frequency: number;
 }
 
@@ -71,13 +72,14 @@ export interface ListeningOptions {
 }
 
 interface MultipleChoiceQuestion extends BaseQuestion {
-  type: "multiple-choice";
+  type: "multiple_choice";
   english: EnglishPrompt;
   options: SpeakingOptions[];
+  correctOptionId: number;
 }
 
 interface SingleResponseQuestion extends BaseQuestion {
-  type: "single-response";
+  type: "single_response";
   english: EnglishPrompt;
   options: [SpeakingOptions];
 }
@@ -86,7 +88,7 @@ interface ListeningMultipleChoiceQuestion extends BaseQuestion {
   type: "listening_mc";
   english: EnglishPrompt & {
     words: Word[];
-    breackdown: string;
+    breakdown: string;
   };
   options: ListeningOptions[];
   correctOptionId: number;

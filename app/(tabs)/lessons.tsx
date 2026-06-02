@@ -38,7 +38,7 @@ export default function LessonsContent() {
   const handlePracticeChapiterPress = (chapter: chapter) => {
     if (chapter.review) {
       router.push({
-        pathname: "./practice",
+        pathname: "/practice",
         params: { lessonId: chapter.review.id },
       });
     }
@@ -182,7 +182,7 @@ export default function LessonsContent() {
               <ThemedText
                 style={[styles.statLabel, { color: Colors.subduedTextColor }]}
               >
-                minutes d'écoute
+                {"minutes d'écoute"}
               </ThemedText>
             </TouchableOpacity>
           </View>
@@ -217,7 +217,7 @@ export default function LessonsContent() {
                 >
                   <Ionicons name="flash" size={20} color="#FFF" />
                   <ThemedText style={styles.practiceChapterButtonText}>
-                    Revue de '{chapter.title}'
+                    {`Revue de '${chapter.title}'`}
                   </ThemedText>
                 </TouchableOpacity>
               )}
