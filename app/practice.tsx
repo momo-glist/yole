@@ -1,8 +1,9 @@
+import LessonContent from "@/components/lesson/LessonContent";
 import VocabularyIntroScreen from "@/components/lesson/VocabularyIntroScreen";
 import { COURSE_DATA } from "@/constants/CourseData";
 import { Redirect, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Practice = () => {
@@ -36,9 +37,7 @@ const Practice = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View>
-        <Text>practice</Text>
-      </View>
+      <LessonContent questions={questions} lessonId={normalizedLessonId} />
     </SafeAreaView>
   );
 };
