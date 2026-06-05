@@ -1,13 +1,17 @@
 import { Question } from "@/constants/CourseData";
 import { recordQuestionListened } from "@/utils/speakingListiningStats";
-import { Audio } from "expo-av";
+import { Audio, InterruptionModeIOS } from "expo-av";
+import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
 import * as Speech from "expo-speech";
-import { useMemo, useRef, useState } from "react";
-import { Animated, StyleSheet, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Alert, Animated, StyleSheet, View } from "react-native";
 import ConfirmDialog from "../ui/ConfirmDialog";
 import AudioPrompt from "./AudioPrompt";
+import ListeningMultipleChhoiceMode from "./ListeningMultipleChoiceMode";
+import MultipleChoiceMode from "./MultipleChoiceMode";
 import Progressheader from "./ProgressHeader";
+import SingleResponseModal from "./SingleResponseModal";
 
 interface WrongQuestion {
   french: string;
@@ -71,6 +75,51 @@ export default function LessonContent({
   const [hasStartedFirstPlay, setHasStartedFirstPlay] = useState(false);
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
+  useEffect(() => {
+    if (isSpeechPlaying && !hasStartedFirstPlay && !hasListedToAudio) {
+      setHasStartedFirstPlay(true);
+      Animated.parallel([
+        Animated.timing(instructionOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(listinigOpacity, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.sequence([
+          Animated.timing(listinigScale, {
+            toValue: 1.05,
+            duration: 150,
+            useNativeDriver: true,
+          }),
+          Animated.timing(listinigScale, {
+            toValue: 1,
+            duration: 150,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start();
+    }
+  }, [isSpeechPlaying, hasStartedFirstPlay, hasListedToAudio]);
+
+  useEffect(() => {
+    if (
+      currentQuestion.type === "single_response" &&
+      currentQuestion.options.length > 0 &&
+      hasListedToAudio
+    ) {
+      setSelectedOption(currentQuestion.options[0].id);
+      Animated.timing(optionSelectionAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [currentQuestion, hasListedToAudio]);
+
   const finishListining = () => {
     if (hasListedToAudio) return;
     setHasListedToAudio(true);
@@ -115,6 +164,141 @@ export default function LessonContent({
         setIsSpeechPlaying(false);
       },
     });
+  };
+
+  const startRecording = async () => {
+    if (isSpeechPlaying) {
+      Speech.stop();
+      setIsSpeechPlaying(false);
+    }
+
+    try {
+      const perm = await Audio.requestPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert("l'accès au microphone est requis");
+        return;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+        interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+        staysActiveInBackground: true,
+      });
+
+      const preset = Audio.RecordingOptionsPresets.HIGH_QUALITY;
+      const { recording } = await Audio.Recording.createAsync({
+        ...preset,
+        android: {
+          ...preset.android,
+          extension: ".wav",
+          outputFormat: Audio.AndroidOutputFormat.DEFAULT,
+          audioEncoder: Audio.AndroidAudioEncoder.DEFAULT,
+        },
+        ios: {
+          ...preset.ios,
+          extension: ".wav",
+          audioQuality: Audio.IOSAudioQuality.MAX,
+          outputFormat: Audio.IOSOutputFormat.LINEARPCM,
+        },
+      });
+      recordingRef.current = recording;
+      setIsRecognazing(true);
+    } catch (error) {
+      console.error("Failed to start recording:", error);
+      recordingRef.current = null;
+      setIsRecognazing(false);
+      Alert.alert("Impossible de debuter l'enregistrement");
+    }
+  };
+
+  const stopRecording = async () => {
+    setIsLoading(true);
+    setIsRecognazing(false);
+
+    try {
+      const recording = recordingRef.current;
+      if (!recording) {
+        setIsLoading(false);
+        return;
+      }
+
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      recordingRef.current == null;
+
+      if (!uri) {
+        setIsLoading(false);
+        Alert.alert("Aucun audio n'a été enregistré");
+        return;
+      }
+
+      const baseAudio = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+    } catch (error) {}
+  };
+
+  const resetQuestionState = () => {
+    Speech.stop();
+    setIsSpeechPlaying(false);
+    setShowEnglish(false);
+    setSelectedOption(null);
+    setIsLoading(false);
+    setShowResults(false);
+    setHasListedToAudio(false);
+    setHasStartedFirstPlay(false);
+    setIsRecognazing(false);
+    fadeAnim.setValue(0);
+    scaleAnim.setValue(1);
+    optionAnimationValue.setValue(0);
+    optionSelectionAnim.setValue(0);
+    audioSectionAnimHeight.setValue(400);
+    instructionOpacity.setValue(1);
+    listinigOpacity.setValue(0);
+    listinigScale.setValue(0.95);
+  };
+
+  const goToNextQuestion = () => {
+    const nextQuestionIndex = currentQuestionIndex + 1;
+
+    if (nextQuestionIndex >= questions.length) {
+      router.push("/lessons");
+      return;
+    }
+
+    resetQuestionState();
+    setCurrentQuestionIndex(nextQuestionIndex);
+  };
+
+  const handleOptionPress = (id: number) => {
+    if (currentQuestion.type === "listening_mc") {
+      setSelectedOption(id);
+      setIsCorrect(id === currentQuestion.correctOptionId);
+      setShowResults(true);
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.05,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+      return;
+    }
+
+    const isDeselecting = selectedOption === id;
+    const newSelectedOption = isDeselecting ? null : id;
+    setSelectedOption(newSelectedOption);
+    Animated.timing(optionSelectionAnim, {
+      toValue: isDeselecting ? 0 : 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handleRevealEnglish = () => {
@@ -177,7 +361,7 @@ export default function LessonContent({
             isRecognizing={isRecognazing}
             hasListedToAudio={hasListedToAudio}
             onPlay={playAudio}
-            onStartRecord={() => {}}
+            onStartRecord={startRecording}
             onStopRecord={() => {}}
             onRevealEnglish={handleRevealEnglish}
             currentQuestion={currentQuestion}
@@ -190,6 +374,55 @@ export default function LessonContent({
             fadeAnim={fadeAnim}
           />
         </Animated.View>
+
+        {hasListedToAudio && (
+          <Animated.View
+            style={[
+              styles.optionsSection,
+              {
+                opacity: Animated.multiply(
+                  optionAnimationValue,
+                  isLoading || showResults ? 0.5 : 1,
+                ),
+                transform: [
+                  {
+                    translateY: optionAnimationValue.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [30, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+            pointerEvents={isLoading || showResults ? "none" : "auto"}
+          >
+            {currentQuestion.type === "multiple_choice" && (
+              <MultipleChoiceMode
+                options={currentQuestion.options}
+                selectedOption={selectedOption}
+                handleOptionPress={handleOptionPress}
+                optionSelectionAnim={optionSelectionAnim}
+                isLoading={isLoading}
+                showResults={showResults}
+              />
+            )}
+            {currentQuestion.type === "listening_mc" && (
+              <ListeningMultipleChhoiceMode
+                options={currentQuestion.options}
+                selectedOption={selectedOption}
+                handleOptionPress={handleOptionPress}
+                isLoading={isLoading}
+                showResults={showResults}
+              />
+            )}
+            {currentQuestion.type === "single_response" && (
+              <SingleResponseModal
+                option={currentQuestion.options[0]}
+                optionSelectionAnim={optionSelectionAnim}
+              />
+            )}
+          </Animated.View>
+        )}
       </View>
     </View>
   );

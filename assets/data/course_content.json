@@ -9171,11 +9171,7 @@
       "isFree": false,
       "description": "Vous venez d’arriver à votre hôtel après un long vol.",
       "goal": "Faire l’enregistrement",
-      "tasks": [
-        "State your name",
-        "Ask about breakfast",
-        "Ask for Wi-Fi"
-      ],
+      "tasks": ["State your name", "Ask about breakfast", "Ask for Wi-Fi"],
       "difficulty": "Beginner"
     },
     {
@@ -9199,11 +9195,7 @@
       "isFree": false,
       "description": "Vous êtes perdu dans le centre-ville.",
       "goal": "Trouver le métro",
-      "tasks": [
-        "Excuse yourself",
-        "Ask where subway is",
-        "Ask how far"
-      ],
+      "tasks": ["Excuse yourself", "Ask where subway is", "Ask how far"],
       "difficulty": "Beginner"
     }
   ]

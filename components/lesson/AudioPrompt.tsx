@@ -1,8 +1,16 @@
 import { Question } from "@/constants/CourseData";
 import { Colors } from "@/constants/theme";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { Animated, Platform, Pressable, StyleSheet, View } from "react-native";
+import {
+  Animated,
+  Platform,
+  Pressable,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { ThemedText } from "../ThemedText";
+import AudioWaveForme from "./AudioWaveForm";
 
 export default function AudioPrompt({
   isPlaying,
@@ -80,7 +88,7 @@ export default function AudioPrompt({
                   ? "#ef4444"
                   : Colors.primaryAccentColor
                 : playbackDisabled
-                  ? "#ff8c66"
+                  ? "#ABE7B2"
                   : Colors.primaryAccentColor,
               transform: [{ scale: scaleAnim }],
             },
@@ -108,7 +116,72 @@ export default function AudioPrompt({
             Enregistrement...
           </ThemedText>
         </View>
-      ) : null}
+      ) : (
+        <AudioWaveForme isPlaying={isPlaying} />
+      )}
+      <View
+        style={[
+          styles.promptTextContainer,
+          { minHeight: currentQuestion.type === "listening_mc" ? 0 : 50 },
+        ]}
+      >
+        {selectedOption ? (
+          <View style={styles.recordingPromptTop}>
+            <ThemedText style={styles.recordingPromptText}>
+              {isRecognizing
+                ? "Donnez votre reponse"
+                : "Tapez sur le micro pour commencer"}
+            </ThemedText>
+          </View>
+        ) : !hasListedToAudio ? (
+          <View style={styles.listeningPrompt}>
+            <Animated.View
+              style={[
+                styles.instructionContainer,
+                { opacity: instructionOpacity },
+              ]}
+            >
+              <ThemedText style={[styles.instructionText, { marginBottom: 8 }]}>
+                Appuyez sur play pour écouter attentivement
+              </ThemedText>
+              <ThemedText style={[styles.instructionHint]}>
+                L'audio est joué une fois avant chaque réponse
+              </ThemedText>
+            </Animated.View>
+            <Animated.View
+              style={[
+                styles.listeningContainer,
+                {
+                  opacity: listinigOpacity,
+                  transform: [{ scale: listinigScale }],
+                },
+              ]}
+            >
+              <ThemedText style={styles.revealButtonText}>Ecoute...</ThemedText>
+            </Animated.View>
+          </View>
+        ) : showEnglish ? (
+          <TouchableOpacity onPress={onRevealEnglish}>
+            <Animated.View style={[styles.englishText, { opacity: fadeAnim }]}>
+              <ThemedText style={styles.characters}>
+                {currentQuestion.english.characters}
+              </ThemedText>
+            </Animated.View>
+          </TouchableOpacity>
+        ) : (
+          currentQuestion.type !== "listening_mc" && (
+            <TouchableOpacity
+              style={styles.revealButton}
+              onPress={onRevealEnglish}
+              hitSlop={{ top: 10, bottom: 10, left: 20, right: 20 }}
+            >
+              <ThemedText style={styles.instructionText}>
+                Appuyer pour voir ce qui a été dit
+              </ThemedText>
+            </TouchableOpacity>
+          )
+        )}
+      </View>
     </>
   );
 }
@@ -131,12 +204,12 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  mandarinText: {
+  englishText: {
     alignItems: "center",
     padding: 16,
     borderRadius: 12,
   },
-  pinyin: {
+  characters: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 8,
