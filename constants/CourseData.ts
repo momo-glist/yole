@@ -69,6 +69,7 @@ export interface SpeakingOptions {
 export interface ListeningOptions {
   id: number;
   french: string;
+  english: EnglishPhrases;
 }
 
 interface MultipleChoiceQuestion extends BaseQuestion {

@@ -22,6 +22,7 @@ import { compareTwoStrings } from "string-similarity";
 import { ThemedText } from "../ThemedText";
 import ConfirmDialog from "../ui/ConfirmDialog";
 import AudioPrompt from "./AudioPrompt";
+import FeedBackView from "./FeedBackView";
 import ListeningMultipleChhoiceMode from "./ListeningMultipleChoiceMode";
 import MultipleChoiceMode from "./MultipleChoiceMode";
 import Progressheader from "./ProgressHeader";
@@ -31,7 +32,6 @@ interface WrongQuestion {
   french: string;
   english: {
     characters: string;
-    ipa: string;
   };
   attempts: number;
 }
@@ -412,6 +412,87 @@ export default function LessonContent({
     listinigScale.setValue(0.95);
   };
 
+  const nextQuestion = () => {
+    Animated.timing(audioSectionAnimHeight, {
+      toValue: 400,
+      duration: 500,
+      useNativeDriver: false,
+    }).start(() => {
+      if (currentQuestionIndex < questions.length - 1) {
+        resetState();
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+      }
+      {
+        const accuracy = Math.round(
+          (correctAnswersCount / questions.length) * 100,
+        );
+
+        const wrongQuestionList = questions
+          .filter((q) => wrongQuestions.has(q.id))
+          .map((q) => {
+            let french = "";
+            let characters = "";
+
+            if (q.type === "listening_mc") {
+              french =
+                q.options.find((opt) => opt.id === q.correctOptionId)?.french ||
+                "";
+              characters = q.english.characters;
+            }
+            {
+              const option = q.options[0];
+              french = option.french;
+              characters = option.english.characters;
+            }
+
+            return {
+              french,
+              english: {
+                characters,
+              },
+              attempts: questionAttempts[q.id] || 0,
+            };
+          });
+
+        const finalStats: LessonStats = {
+          correctAnswers: correctAnswersCount,
+          totalQuestions: questions.length,
+          accuracy,
+          wrongQuestions:
+            wrongQuestionList.length > 0 ? wrongQuestionList : undefined,
+        };
+
+        setLessonStats(finalStats);
+        setShowCompletScreen(true);
+      }
+    });
+  };
+
+  const resetState = () => {
+    setShowEnglish(false);
+    setSelectedOption(null);
+    setShowResults(false);
+    setHasListedToAudio(false);
+    setAttemptCount(0);
+    setIsLoading(false);
+    setTranscription(null);
+    Speech.stop();
+    setIsSpeechPlaying(false);
+    setHasStartedFirstPlay(false);
+    fadeAnim.setValue(0);
+    scaleAnim.setValue(1);
+    optionAnimationValue.setValue(0);
+    optionSelectionAnim.setValue(0);
+    instructionOpacity.setValue(1);
+    listinigOpacity.setValue(0);
+    listinigScale.setValue(0.95);
+    setHasStartedFirstPlay(false);
+  };
+
+  if (showCompletScreen && lessonStats) {
+    return;
+  }
+
   const goToNextQuestion = () => {
     const nextQuestionIndex = currentQuestionIndex + 1;
 
@@ -607,7 +688,29 @@ export default function LessonContent({
         {/* FeedBack View */}
 
         {showResults && selectedSentences && (
-          <Animated.View style={[styles.feedbackWrapper, {}]}></Animated.View>
+          <Animated.View
+            style={[
+              styles.feedbackWrapper,
+              { transform: [{ scale: scaleAnim }] },
+            ]}
+          >
+            <FeedBackView
+              correctOption={selectedSentences}
+              isCorrect={isCorrect}
+              onContinue={goToNextQuestion}
+              onRetry={resetQuestionState}
+              attempCount={isCorrect ? attempCount : attempCount + 1}
+              maxAttempt={3}
+              transcription={
+                transcription
+                  ? {
+                      expected: transcription.expected,
+                      said: transcription.said,
+                    }
+                  : undefined
+              }
+            />
+          </Animated.View>
         )}
       </View>
     </View>
