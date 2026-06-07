@@ -1,11 +1,25 @@
-import { Question } from "@/constants/CourseData";
-import { recordQuestionListened } from "@/utils/speakingListiningStats";
+import { Question, SpeakingOptions } from "@/constants/CourseData";
+import { Colors } from "@/constants/theme";
+import { supabase } from "@/lib/supabase";
+import {
+  recordQuestionAnswered,
+  recordQuestionListened,
+} from "@/utils/speakingListiningStats";
+import { FunctionsHttpError } from "@supabase/functions-js";
 import { Audio, InterruptionModeIOS } from "expo-av";
 import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
 import * as Speech from "expo-speech";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Animated, StyleSheet, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Animated,
+  StyleSheet,
+  View,
+} from "react-native";
+import { compareTwoStrings } from "string-similarity";
+import { ThemedText } from "../ThemedText";
 import ConfirmDialog from "../ui/ConfirmDialog";
 import AudioPrompt from "./AudioPrompt";
 import ListeningMultipleChhoiceMode from "./ListeningMultipleChoiceMode";
@@ -74,6 +88,66 @@ export default function LessonContent({
   const listinigScale = useRef(new Animated.Value(0.95)).current;
   const [hasStartedFirstPlay, setHasStartedFirstPlay] = useState(false);
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+
+  const selectedSentences = useMemo((): SpeakingOptions | null => {
+    if (currentQuestion.type === "listening_mc") {
+      if (showResults) {
+        const correctFrench =
+          currentQuestion.options.find(
+            (option) => option.id === currentQuestion.correctOptionId,
+          )?.french || "";
+        return {
+          id: currentQuestion.id,
+          french: correctFrench,
+          english: {
+            ...currentQuestion.english,
+          },
+        };
+      }
+      return null;
+    }
+
+    if (!selectedOption) return null;
+    return currentQuestion.options.find(
+      (option) => option.id === selectedOption,
+    )!;
+  }, [selectedOption, currentQuestion, showResults]);
+
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+      if (recordingRef.current) {
+        recordingRef.current.stopAndUnloadAsync();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (showResults) {
+      if (isCorrect) {
+        if (
+          attempCount === 0 ||
+          (attempCount > 0 && wrongQuestions.has(currentQuestion.id))
+        ) {
+          setCorrectAnswersCount((prev) => prev + 1);
+        } else {
+          setQuestionAttempts((prev) => ({
+            ...prev,
+            [currentQuestion.id]: (prev[currentQuestion.id] || 0) + 1,
+          }));
+        }
+
+        if (attempCount === 0) {
+          setWrongQuestions((prev) => new Set(prev).add(currentQuestion.id));
+        }
+      }
+    }
+  }, [showResults, isCorrect, attempCount, currentQuestion.id]);
+
+  useEffect(() => {
+    Speech.stop();
+    setIsSpeechPlaying(false);
+  }, [currentQuestion]);
 
   useEffect(() => {
     if (isSpeechPlaying && !hasStartedFirstPlay && !hasListedToAudio) {
@@ -212,20 +286,68 @@ export default function LessonContent({
     }
   };
 
+  const proceesSpeechResult = (transcript: string) => {
+    setIsLoading(false);
+    setShowResults(true);
+
+    const punctuationRegex = /[.,\/#!$%\^&\*;:{}=\-_`~()?]/g;
+    const rawExpected = selectedSentences?.english.characters || "";
+    const expected = rawExpected
+      .toLowerCase()
+      .replace(punctuationRegex, "")
+      .replace(/\s+/g, "")
+      .trim();
+
+    const said = transcript
+      .toLowerCase()
+      .replace(punctuationRegex, "")
+      .replace(/\s+/g, "")
+      .trim();
+
+    setTranscription({ expected: rawExpected, said: transcript });
+
+    if (!said || !expected) {
+      setIsCorrect(false);
+    } else {
+      const similarity = compareTwoStrings(expected, said);
+      const isSimilarEnough = similarity >= 0.8;
+      setIsCorrect(isSimilarEnough);
+      if (isSimilarEnough) {
+        void recordQuestionAnswered();
+      }
+    }
+
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 1.05,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
   const stopRecording = async () => {
     setIsLoading(true);
     setIsRecognazing(false);
 
     try {
       const recording = recordingRef.current;
+
       if (!recording) {
         setIsLoading(false);
         return;
       }
 
       await recording.stopAndUnloadAsync();
+
       const uri = recording.getURI();
-      recordingRef.current == null;
+
+      recordingRef.current = null;
 
       if (!uri) {
         setIsLoading(false);
@@ -233,10 +355,41 @@ export default function LessonContent({
         return;
       }
 
-      const baseAudio = await FileSystem.readAsStringAsync(uri, {
+      const base64Audio = await FileSystem.readAsStringAsync(uri, {
         encoding: FileSystem.EncodingType.Base64,
       });
-    } catch (error) {}
+
+      const { data, error } = await supabase.functions.invoke("transcriber", {
+        body: {
+          inputAudio: {
+            data: base64Audio,
+            format: "wav",
+          },
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.transcript) {
+        proceesSpeechResult(data.transcript);
+      } else {
+        throw new Error("No transcript found");
+      }
+    } catch (error) {
+      console.error("Failed to stop recording:", error);
+
+      if (error instanceof FunctionsHttpError) {
+        const errorResponse = await error.context.json();
+        console.log("EDGE ERROR:", errorResponse);
+      }
+
+      setIsLoading(false);
+      Alert.alert("Erreur de transcription");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const resetQuestionState = () => {
@@ -327,8 +480,19 @@ export default function LessonContent({
         }
         confirmLabel={"Quitter"}
         cancelLabel={"Annuler"}
-        onConfirm={() => {
+        onConfirm={async () => {
           setExitConfirmVisible(false);
+
+          Speech.stop();
+
+          if (recordingRef.current) {
+            try {
+              await recordingRef.current.stopAndUnloadAsync();
+            } catch {}
+
+            recordingRef.current = null;
+          }
+
           router.push("/lessons");
         }}
         onCancel={() => setExitConfirmVisible(false)}
@@ -362,7 +526,7 @@ export default function LessonContent({
             hasListedToAudio={hasListedToAudio}
             onPlay={playAudio}
             onStartRecord={startRecording}
-            onStopRecord={() => {}}
+            onStopRecord={stopRecording}
             onRevealEnglish={handleRevealEnglish}
             currentQuestion={currentQuestion}
             showEnglish={showEnglish}
@@ -422,6 +586,28 @@ export default function LessonContent({
               />
             )}
           </Animated.View>
+        )}
+
+        {isLoading && (
+          <View style={styles.bottomSection}>
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator
+                size="large"
+                color={Colors.primaryAccentColor}
+              />
+              <ThemedText
+                style={[styles.loadingText, { color: Colors.subduedTextColor }]}
+              >
+                Analyse de ta prononciation
+              </ThemedText>
+            </View>
+          </View>
+        )}
+
+        {/* FeedBack View */}
+
+        {showResults && selectedSentences && (
+          <Animated.View style={[styles.feedbackWrapper, {}]}></Animated.View>
         )}
       </View>
     </View>

@@ -1,5 +1,4 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,10 +12,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
     const authHeader = req.headers.get("Authorization") ?? "";
 
     if (!authHeader) {
@@ -28,52 +23,66 @@ Deno.serve(async (req) => {
 
     const { inputAudio } = await req.json();
 
-    if (!inputAudio || !inputAudio.data || !inputAudio.format) {
-      return new Response(JSON.stringify({ error: "Missing audio data " }), {
+    if (!inputAudio?.data || !inputAudio?.format) {
+      return new Response(JSON.stringify({ error: "Missing audio data" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    const openRouterApiKey = Deno.env.get("OPEN_ROUTER_API_KEY");
 
-    const {
-      data: { user },
-      error: userError,
-    } = await userClient.auth.getUser();
-
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!openRouterApiKey) {
+      throw new Error("OPEN_ROUTER_API_KEY is not set");
     }
 
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
-
-    const expiresAt = new Date(
-      Date.now() + 7 * 24 * 60 * 60 * 1000,
-    ).toISOString();
-
-    const { error: updateError } = await adminClient.from("profiles").upsert({
-      id: user.id,
-      is_premium: true,
-      premium_expires_at: expiresAt,
-      updated_at: new Date().toISOString(),
-    });
-
-    if (updateError) throw updateError;
-
-    return new Response(
-      JSON.stringify({ ok: true, premium_expires_at: expiresAt }),
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${openRouterApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: "Transcribe the audio exactly with punctuation. Return only text.",
+                },
+                {
+                  type: "input_audio",
+                  input_audio: {
+                    data: inputAudio.data,
+                    format: inputAudio.format,
+                  },
+                },
+              ],
+            },
+          ],
+        }),
       },
     );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`OpenRouter error: ${errorText}`);
+    }
+
+    const data = await response.json();
+
+    const transcription = data.choices[0].message.content;
+
+    return new Response(JSON.stringify({ transcript: transcription }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
+
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
