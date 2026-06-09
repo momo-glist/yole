@@ -1,6 +1,7 @@
 import { Question, SpeakingOptions } from "@/constants/CourseData";
 import { Colors } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
+import { incrementLessonCompletion } from "@/utils/lessonProgress";
 import {
   recordQuestionAnswered,
   recordQuestionListened,
@@ -23,6 +24,7 @@ import { ThemedText } from "../ThemedText";
 import ConfirmDialog from "../ui/ConfirmDialog";
 import AudioPrompt from "./AudioPrompt";
 import FeedBackView from "./FeedBackView";
+import LessonCompleteScreen from "./LessonCompleteScreen";
 import ListeningMultipleChhoiceMode from "./ListeningMultipleChoiceMode";
 import MultipleChoiceMode from "./MultipleChoiceMode";
 import Progressheader from "./ProgressHeader";
@@ -36,6 +38,8 @@ interface WrongQuestion {
   attempts: number;
 }
 
+const MAX_ATTEMPTS = 3;
+
 export interface LessonStats {
   correctAnswers: number;
   totalQuestions: number;
@@ -48,7 +52,7 @@ export default function LessonContent({
   lessonId,
 }: {
   questions: Question[];
-  lessonId?: string;
+  lessonId: string;
 }) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
@@ -58,7 +62,7 @@ export default function LessonContent({
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [hasListedToAudio, setHasListedToAudio] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [attempCount, setAttemptCount] = useState(0);
   const [isRecognazing, setIsRecognazing] = useState(false);
   const recordingRef = useRef<Audio.Recording | null>(null);
@@ -130,12 +134,12 @@ export default function LessonContent({
           (attempCount > 0 && wrongQuestions.has(currentQuestion.id))
         ) {
           setCorrectAnswersCount((prev) => prev + 1);
-        } else {
-          setQuestionAttempts((prev) => ({
-            ...prev,
-            [currentQuestion.id]: (prev[currentQuestion.id] || 0) + 1,
-          }));
         }
+      } else {
+        setQuestionAttempts((prev) => ({
+          ...prev,
+          [currentQuestion.id]: (prev[currentQuestion.id] || 0) + 1,
+        }));
 
         if (attempCount === 0) {
           setWrongQuestions((prev) => new Set(prev).add(currentQuestion.id));
@@ -421,8 +425,7 @@ export default function LessonContent({
       if (currentQuestionIndex < questions.length - 1) {
         resetState();
         setCurrentQuestionIndex(currentQuestionIndex + 1);
-      }
-      {
+      } else {
         const accuracy = Math.round(
           (correctAnswersCount / questions.length) * 100,
         );
@@ -468,6 +471,39 @@ export default function LessonContent({
     });
   };
 
+  const handleRetry = () => {
+    Animated.timing(scaleAnim, {
+      toValue: 0.9,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowResults(false);
+      setIsCorrect(null);
+      setAttemptCount((prev) => prev + 1);
+
+      if (currentQuestion.type === "listening_mc") {
+        setSelectedOption(null);
+      } else {
+        setIsLoading(false);
+        setHasListedToAudio(true);
+
+        if (currentQuestion.type === "multiple_choice") {
+          optionSelectionAnim.setValue(0);
+          setSelectedOption(null);
+        } else {
+          optionSelectionAnim.setValue(1);
+        }
+
+        audioSectionAnimHeight.setValue(200);
+        optionAnimationValue.setValue(1);
+        instructionOpacity.setValue(0);
+        listinigOpacity.setValue(1);
+      }
+
+      scaleAnim.setValue(1);
+    });
+  };
+
   const resetState = () => {
     setShowEnglish(false);
     setSelectedOption(null);
@@ -490,7 +526,23 @@ export default function LessonContent({
   };
 
   if (showCompletScreen && lessonStats) {
-    return;
+    return (
+      <LessonCompleteScreen
+        lessonStats={lessonStats}
+        onContinue={async () => {
+          (await incrementLessonCompletion(lessonId), router.push("/lessons"));
+        }}
+        onReview={() => {
+          setShowCompletScreen(false);
+          setLessonStats(null);
+          setCurrentQuestionIndex(0);
+          setQuestionAttempts({});
+          setCorrectAnswersCount(0);
+          setWrongQuestions(new Set());
+          resetState();
+        }}
+      />
+    );
   }
 
   const goToNextQuestion = () => {
@@ -543,6 +595,7 @@ export default function LessonContent({
         useNativeDriver: true,
       }).start(() => setShowEnglish(false));
     } else {
+      setShowEnglish(true);
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 250,
@@ -697,10 +750,14 @@ export default function LessonContent({
             <FeedBackView
               correctOption={selectedSentences}
               isCorrect={isCorrect}
-              onContinue={goToNextQuestion}
-              onRetry={resetQuestionState}
+              onContinue={nextQuestion}
+              onRetry={
+                attempCount < MAX_ATTEMPTS && isCorrect
+                  ? handleRetry
+                  : undefined
+              }
               attempCount={isCorrect ? attempCount : attempCount + 1}
-              maxAttempt={3}
+              maxAttempt={MAX_ATTEMPTS}
               transcription={
                 transcription
                   ? {

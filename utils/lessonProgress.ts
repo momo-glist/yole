@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const STATS_KEY = "lesson_progress";
 
 export interface LessonProgress {
-  [lessonId: string]: number;
+  [lessonId: string]: number; // lessonID -> completionCount
 }
 
 const readProgress = async (): Promise<LessonProgress> => {
@@ -12,7 +12,7 @@ const readProgress = async (): Promise<LessonProgress> => {
     if (!raw) return {};
 
     return JSON.parse(raw) as LessonProgress;
-  } catch (error) {
+  } catch {
     return {};
   }
 };
@@ -21,7 +21,7 @@ const writeProgress = async (data: LessonProgress) => {
   await AsyncStorage.setItem(STATS_KEY, JSON.stringify(data));
 };
 
-export const incrementLessonProgress = async (lessonId: string) => {
+export const incrementLessonCompletion = async (lessonId: string) => {
   const progress = await readProgress();
   progress[lessonId] = (progress[lessonId] || 0) + 1;
   await writeProgress(progress);

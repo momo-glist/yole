@@ -16,7 +16,7 @@ export default function FeedBackView({
   correctOption: SpeakingOptions;
   isCorrect: boolean | null;
   onContinue: () => void;
-  onRetry: () => void;
+  onRetry?: () => void;
   attempCount: number;
   maxAttempt: number;
   transcription?: {
@@ -24,7 +24,7 @@ export default function FeedBackView({
     said: string;
   };
 }) {
-  const showRetryButton = !isCorrect && attempCount < maxAttempt;
+  const showRetryButton = onRetry && !isCorrect && attempCount < maxAttempt;
   const showCorrectAnswer = !isCorrect && attempCount >= maxAttempt;
   return (
     <View
