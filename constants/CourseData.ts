@@ -53,7 +53,7 @@ export interface Word {
   frequency: number;
 }
 
-interface EnglishPhrases {
+export interface EnglishPhrases {
   characters: string;
   ipa: string;
   words: Word[];
