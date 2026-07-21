@@ -2,13 +2,8 @@ import { EnglishPhrases, Word } from "@/constants/CourseData";
 import { Colors } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import * as Speech from "expo-speech";
-import { useCallback, useRef, useState } from "react";
-import {
-  Dimensions,
-  Pressable,
-  StyleSheet,
-  View,
-} from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Dimensions, Pressable, StyleSheet, View } from "react-native";
 import {
   Gesture,
   GestureDetector,
@@ -44,15 +39,18 @@ export default function SentenceBreackDownCard({
   sentence: {
     french: string;
     english: EnglishPhrases;
+    breakdown: string;
   };
-  disabled: boolean;
+  disabled?: boolean;
 }) {
   "use no memo";
   const insets = useSafeAreaInsets();
   const transaleY = useSharedValue(CLOSED_POSITION);
   const contextY = useSharedValue(0);
+  const toolTipWidthRef = useRef<number>(0);
   const [toolTip, setToolTip] = useState<ToolTipState | null>(null);
-  const cardRef = useRef<View>(null);
+  const englishWordRefs = useRef<Array<View | null>>([]);
+  const cardRef = useRef<Animated.View>(null);
   const [selectedWord, setSelectedWord] = useState<{
     type: "characters";
     index: number;
@@ -64,6 +62,12 @@ export default function SentenceBreackDownCard({
       transform: [{ translateY: transaleY.value }],
     };
   });
+
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
+  }, []);
 
   const closeCard = () => {
     "worklet";
@@ -115,7 +119,9 @@ export default function SentenceBreackDownCard({
       return;
     }
 
-    const text = sentence.english.words.map((word: Word) => word.characters).join(" ");
+    const text = sentence.english.words
+      .map((word: Word) => word.characters)
+      .join(" ");
     if (!text) return;
 
     setIsPlaying(true);
@@ -126,6 +132,56 @@ export default function SentenceBreackDownCard({
       onError: handleSpeechEnd,
     });
   }, [isPlaying, sentence.english.words, handleSpeechEnd]);
+
+  const showTooltipe = (word: Word, type: "characters", index: number) => {
+    const wordRef =
+      type === "characters" ? englishWordRefs.current[index] : null;
+
+    if (!wordRef) return;
+
+    wordRef.measureInWindow((wordX, wordY, wordWidth) => {
+      cardRef.current?.measureInWindow((cardX, cardY) => {
+        setToolTip({
+          visible: true,
+          text: word.french,
+          x: wordX + wordWidth / 2,
+          y: wordY - cardY,
+          width: wordWidth,
+        });
+
+        setSelectedWord({ type, index });
+      });
+    });
+  }; // ← IL MANQUE CETTE ACCOLADE
+
+  const renderInteractiveSentence = (type: "characters") => (
+    <Pressable onPress={hideTooltip}>
+      <View style={styles.interactiveSentenceContainer}>
+        {sentence.english.words.map((word: Word, index: number) => (
+          <Pressable
+            key={index}
+            ref={(ref) => {
+              if (type === "characters") englishWordRefs.current[index] = ref;
+              else englishWordRefs.current[index] = null;
+            }}
+            onPress={() => showTooltipe(word, type, index)}
+          >
+            <ThemedText
+              style={[
+                styles.englishValue,
+                selectedWord &&
+                  selectedWord.type === type &&
+                  selectedWord.index === index &&
+                  styles.selectedWord,
+              ]}
+            >
+              {word.characters}
+            </ThemedText>
+          </Pressable>
+        ))}
+      </View>
+    </Pressable>
+  );
 
   const cardInner = (
     <Animated.View
@@ -190,9 +246,45 @@ export default function SentenceBreackDownCard({
                 />
               </Pressable>
             </View>
+            {renderInteractiveSentence("characters")}
+          </View>
+          <View style={styles.breakdownItem}>
+            <ThemedText style={styles.label}>Signification:</ThemedText>
+            <ThemedText style={styles.frenchValue}>
+              {sentence.french}
+            </ThemedText>
+          </View>
+          <View style={styles.breakdownItem}>
+            <ThemedText style={styles.label}>Analyse:</ThemedText>
+            <ThemedText style={styles.breakdownText}>
+              {sentence.breakdown}
+            </ThemedText>
           </View>
         </ScrollView>
       </Pressable>
+
+      {toolTip?.visible && (
+        <View
+          style={[
+            styles.tooltipContainer,
+            {
+              top: toolTip.y - 48,
+              left: Math.max(
+                8,
+                Math.min(
+                  toolTip.x - toolTipWidthRef.current / 2,
+                  SCREEN_WIDTH - toolTipWidthRef.current - 8,
+                ),
+              ),
+            },
+          ]}
+          onLayout={(e) => {
+            toolTipWidthRef.current = e.nativeEvent.layout.width;
+          }}
+        >
+          <ThemedText style={styles.tooltipText}>{toolTip.text}</ThemedText>
+        </View>
+      )}
     </Animated.View>
   );
 
@@ -266,13 +358,13 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     alignItems: "center",
   },
-  pinyinValue: {
+  englishValue: {
     fontSize: 18,
     color: "#1c1c1e",
     fontWeight: "600",
     lineHeight: 30,
   },
-  englishValue: {
+  frenchValue: {
     fontSize: 18,
     color: "#1c1c1e",
     lineHeight: 26,

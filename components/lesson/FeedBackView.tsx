@@ -69,9 +69,7 @@ export default function FeedBackView({
       {transcription && (
         <View style={styles.transcriptionContainer}>
           <View style={styles.transcriptionRow}>
-            <ThemedText style={styles.transcriptionLabel}>
-              Reponse attendu:
-            </ThemedText>
+            <ThemedText style={styles.transcriptionLabel}>Attendu:</ThemedText>
             <ThemedText style={styles.transcriptionText}>
               {transcription.expected}
             </ThemedText>

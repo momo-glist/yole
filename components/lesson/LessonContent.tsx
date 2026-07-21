@@ -3,8 +3,8 @@ import { Colors } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import { incrementLessonCompletion } from "@/utils/lessonProgress";
 import {
-    recordQuestionAnswered,
-    recordQuestionListened,
+  recordQuestionAnswered,
+  recordQuestionListened,
 } from "@/utils/speakingListiningStats";
 import { FunctionsHttpError } from "@supabase/functions-js";
 import { Audio, InterruptionModeIOS } from "expo-av";
@@ -13,11 +13,11 @@ import { router } from "expo-router";
 import * as Speech from "expo-speech";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    StyleSheet,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  StyleSheet,
+  View,
 } from "react-native";
 import { compareTwoStrings } from "string-similarity";
 import { ThemedText } from "../ThemedText";
@@ -616,6 +616,7 @@ export default function LessonContent({
         }
         confirmLabel={"Quitter"}
         cancelLabel={"Annuler"}
+        destructive
         onConfirm={async () => {
           setExitConfirmVisible(false);
 
@@ -784,6 +785,7 @@ export default function LessonContent({
                   (opt) => opt.id === currentQuestion.correctOptionId,
                 )?.french || "",
               english: currentQuestion.english,
+              breakdown: currentQuestion.english.breakdown || "",
             }}
             disabled={showResults}
           />
@@ -795,6 +797,7 @@ export default function LessonContent({
             sentence={{
               french: selectedSentences.french,
               english: selectedSentences.english,
+              breakdown: selectedSentences.english.breakdown,
             }}
             disabled={showResults}
           />

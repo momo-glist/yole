@@ -36,46 +36,41 @@ Deno.serve(async (req) => {
       throw new Error("OPEN_ROUTER_API_KEY is not set");
     }
 
+    // Convert base64 to blob
+    const audioBuffer = Uint8Array.from(atob(inputAudio.data), (c) => c.charCodeAt(0));
+    const blob = new Blob([audioBuffer], { type: `audio/${inputAudio.format}` });
+
+    const formData = new FormData();
+    formData.append("file", blob, `audio.${inputAudio.format}`);
+    formData.append("model", "whisper-1");
+
     const response = await fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
+      "https://openrouter.ai/api/v1/audio/transcriptions",
       {
         method: "POST",
         headers: {
           Authorization: `Bearer ${openRouterApiKey}`,
-          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          model: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: "Transcribe the audio exactly with punctuation. Return only text.",
-                },
-                {
-                  type: "input_audio",
-                  input_audio: {
-                    data: inputAudio.data,
-                    format: inputAudio.format,
-                  },
-                },
-              ],
-            },
-          ],
-        }),
+        body: formData,
       },
     );
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error("OpenRouter error:", errorText);
       throw new Error(`OpenRouter error: ${errorText}`);
     }
 
     const data = await response.json();
 
-    const transcription = data.choices[0].message.content;
+    console.log("OpenRouter response:", JSON.stringify(data));
+
+    const transcription = data.text;
+
+    if (!transcription) {
+      console.error("No text in transcription response:", JSON.stringify(data));
+      throw new Error("Empty transcription returned from API");
+    }
 
     return new Response(JSON.stringify({ transcript: transcription }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

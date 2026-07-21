@@ -26,17 +26,17 @@
                     "ipa": "Good morning",
                     "words": [
                       {
-                        "characters": "morning",
-                        "ipa": "morning",
-                        "french": "matin"
-                      },
-                      {
                         "characters": "good",
                         "ipa": "good",
                         "french": "bon"
+                      },
+                      {
+                        "characters": " morning",
+                        "ipa": "morning",
+                        "french": "matin"
                       }
                     ],
-                    "breakdown": "Greeting used before noon."
+                    "breakdown": "Salutation utilisé avant midi."
                   }
                 }
               ]
