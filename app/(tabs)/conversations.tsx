@@ -6,11 +6,12 @@ import { useAuth } from "@/ctx/AuthContext";
 import { supabase } from "@/lib/supabase";
 import {
   createCustomScenarioId,
+  listCustomScenarios,
   saveCustomScenario,
 } from "@/utils/customScenario";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -36,6 +37,25 @@ export default function ConversationsScreen() {
   const [customScene, setCustomScene] = useState("");
   const [customScenarios, setCustomScearios] = useState<conversationScenario[]>(
     [],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      const load = async () => {
+        try {
+          const saved = await listCustomScenarios();
+          if (isActive) setCustomScearios(saved);
+        } catch (err) {
+          console.error("Failes to load custom scenarios:", err);
+        }
+      };
+
+      void load();
+      return () => {
+        isActive = false;
+      };
+    }, []),
   );
 
   const handleScenarioPress = (scenario: conversationScenario) => {
@@ -205,7 +225,7 @@ export default function ConversationsScreen() {
 
           {/* Scenarios grid */}
           <View style={styles.gridContainer}>
-            {[...COURSE_DATA.scenarios].map((scenario) => (
+            {[...customScenarios, ...COURSE_DATA.scenarios].map((scenario) => (
               <TouchableOpacity
                 key={scenario.id}
                 style={[
