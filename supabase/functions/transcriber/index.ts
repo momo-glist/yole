@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
 
     const formData = new FormData();
     formData.append("file", blob, `audio.${inputAudio.format}`);
-    formData.append("model", "whisper-1");
+    formData.append("model", "microsoft/mai-transcribe-1.5");
 
     const response = await fetch(
       "https://openrouter.ai/api/v1/audio/transcriptions",

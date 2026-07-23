@@ -56,7 +56,7 @@ export const recordQuestionListened = async () => {
   await writeStats(stats);
 };
 
-export const recordConvesationTurn = async () => {
+export const recordConversationTurn = async () => {
   const stats = await readStats();
   stats.conversationTurns += 1;
 

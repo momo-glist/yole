@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
     const typeProfileRow = profile as ProfileRow | null;
     const premiumExpiresAt = typeProfileRow?.premium_expires_at ?? null;
     const isPremium =
-      !!typeProfile?.is_premium &&
+      !!typeProfileRow?.is_premium &&
       (!premiumExpiresAt || new Date(premiumExpiresAt) > new Date());
 
     if (!isPremium) {
@@ -184,10 +184,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    const openRouterApiKey = Deno.env.get("OPENROUTER_API_KEY")!;
+    const openRouterApiKey = Deno.env.get("OPEN_ROUTER_API_KEY")!;
     if (!openRouterApiKey) {
-      console.error("OPENROUTER_API_KEY is missing");
-      throw new Error("OPENROUTER_API_KEY is missing");
+      console.error("OPEN_ROUTER_API_KEY is missing");
+      throw new Error("OPEN_ROUTER_API_KEY is missing");
     }
 
     const systemPrompt = `
@@ -228,7 +228,7 @@ Rules:
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${openrouterApiKey}`,
+          Authorization: `Bearer ${openRouterApiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
