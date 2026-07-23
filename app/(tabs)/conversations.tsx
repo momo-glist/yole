@@ -156,7 +156,10 @@ export default function ConversationsScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: "#fff" }}
+      edges={["top", "left", "right"]}
+    >
       <View style={{ flex: 1 }}>
         <View
           style={[styles.header, { borderBottomColor: Colors.borderColor }]}

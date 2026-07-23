@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.yololearn"
+      "bundleIdentifier": "com.anonymous.yololearn",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "This app needs microphone access for pronunciation practice."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -39,8 +42,14 @@
           }
         }
       ],
-      "expo-sqlite",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-video",
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone for pronunciation practice"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
