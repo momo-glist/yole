@@ -3,11 +3,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef } from "react";
 import {
-  Animated,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    Animated,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import ConfettiCannon from "react-native-confetti-cannon";
 import { ThemedText } from "../ThemedText";
@@ -48,10 +48,10 @@ export default function LessonCompleteScreen({
   }, []);
 
   const getPerformanceMessage = () => {
-    if (lessonStats.accuracy >= 90) return "Toutes mes felicitation!!! 🌟";
-    if (lessonStats.accuracy >= 75) return "très Bon travail 💪";
+    if (lessonStats.accuracy >= 90) return "Toutes mes félicitations !!! 🌟";
+    if (lessonStats.accuracy >= 75) return "Très bon travail 💪";
     if (lessonStats.accuracy >= 60) return "Bon travail 💪";
-    return "Continue de te former";
+    return "Continuez de vous former";
   };
   const getPerformanceColor = () => {
     if (lessonStats.accuracy >= 90) return "#FFD700";
@@ -143,7 +143,7 @@ export default function LessonCompleteScreen({
                   { color: Colors.subduedTextColor },
                 ]}
               >
-                Concentre toi sur ce ci pour t'ameliorer
+                Concentrez-vous sur ceci pour vous améliorer
               </ThemedText>
 
               {lessonStats.wrongQuestions.map((question, index) => (
@@ -205,7 +205,7 @@ export default function LessonCompleteScreen({
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <ThemedText style={styles.primaryButtonText}>Continue</ThemedText>
+            <ThemedText style={styles.primaryButtonText}>Continuer</ThemedText>
             <Ionicons name="arrow-forward" size={20} color="#fff" />
           </LinearGradient>
         </TouchableOpacity>
@@ -221,7 +221,7 @@ export default function LessonCompleteScreen({
                 color={Colors.primaryAccentColor}
               />
               <ThemedText style={styles.secondaryButtonText}>
-                Continuee d'apprendre
+                Continuez d'apprendre
               </ThemedText>
             </TouchableOpacity>
           )}

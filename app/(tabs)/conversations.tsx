@@ -5,20 +5,20 @@ import { Colors } from "@/constants/theme";
 import { useAuth } from "@/ctx/AuthContext";
 import { supabase } from "@/lib/supabase";
 import {
-  createCustomScenarioId,
-  listCustomScenarios,
-  saveCustomScenario,
+    createCustomScenarioId,
+    listCustomScenarios,
+    saveCustomScenario,
 } from "@/utils/customScenario";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Modal,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    Alert,
+    KeyboardAvoidingView,
+    Modal,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { ScrollView, TextInput } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -116,8 +116,8 @@ export default function ConversationsScreen() {
       if (error) {
         console.error("Error calling scenario-generate", error);
         Alert.alert(
-          "Génération impossible du scenario",
-          "Reesayer s'il vous plait",
+          "Génération impossible du scénario",
+          "Réessayer s'il vous plaît",
         );
         return;
       }
@@ -147,8 +147,8 @@ export default function ConversationsScreen() {
     } catch (error) {
       console.error("Couldn't generate scenarion", error);
       Alert.alert(
-        "Impossible de commancer la conversation",
-        "Reessayer s'il vous plait",
+        "Impossible de commencer la conversation",
+        "Réessayer s'il vous plaît",
       );
     } finally {
       setIsGeneratingScenario(false);
@@ -190,7 +190,7 @@ export default function ConversationsScreen() {
                   Obtenez l'accès complet à Yollo
                 </ThemedText>
                 <ThemedText style={styles.premiumSubtitle}>
-                  Débloquez toutes les fonctionnalités et scenarios personalisés
+                  Débloquez toutes les fonctionnalités et scénarios personnalisés
                 </ThemedText>
                 <View style={styles.premiumButton}>
                   <ThemedText
@@ -243,12 +243,12 @@ export default function ConversationsScreen() {
                   <View
                     style={[
                       styles.freeBadge,
-                      { backgroundColor: Colors.light.text + "22" },
+                      { backgroundColor: "transparent", borderWidth: 1, borderColor: Colors.borderColor },
                     ]}
                   >
                     <ThemedText
                       style={[
-                        styles.freeBadge,
+                        styles.freeBadgeText,
                         { color: Colors.subduedTextColor },
                       ]}
                     >
@@ -384,7 +384,7 @@ export default function ConversationsScreen() {
                       type="defaultSemiBold"
                       style={{ marginBottom: 8 }}
                     >
-                      Directives de la duscussion gratuite
+                      Directives de la discussion gratuite
                     </ThemedText>
                     <View style={styles.guidelineItem}>
                       <Ionicons
@@ -469,10 +469,10 @@ export default function ConversationsScreen() {
                     ]}
                     onPress={() => {
                       const entries = selectedScenario?.phrasebook ?? [];
-                      if (entries.length > 0) {
+                      if (entries.length === 0) {
                         Alert.alert(
-                          "Pas de Manuel",
-                          "Ce scenario n'a pas de manuel disponible.",
+                          "Pas de manuel",
+                          "Ce scénario n'a pas de manuel disponible.",
                         );
                         return;
                       }
@@ -490,7 +490,7 @@ export default function ConversationsScreen() {
                         fontWeight: "600",
                       }}
                     >
-                      Voir le Manuel
+                      Voir le manuel
                     </ThemedText>
                   </TouchableOpacity>
                 </>
@@ -563,7 +563,7 @@ export default function ConversationsScreen() {
                 <ThemedText
                   style={{ color: Colors.subduedTextColor, marginBottom: 20 }}
                 >
-                  Remplissez les champs de role et decrivez en detail la scène
+                  Remplissez les champs de rôle et décrivez en détail la scène
                   et la conversation que vous souhaitez avoir.
                 </ThemedText>
 
@@ -580,7 +580,7 @@ export default function ConversationsScreen() {
                       color={Colors.subduedTextColor}
                     />
                     <TextInput
-                      placeholder="Mon role"
+                      placeholder="Mon rôle"
                       style={[styles.input, { color: Colors.light.text }]}
                       placeholderTextColor={Colors.subduedTextColor}
                       value={customMyRole}
@@ -599,7 +599,7 @@ export default function ConversationsScreen() {
                       color={Colors.subduedTextColor}
                     />
                     <TextInput
-                      placeholder="le role de l'ia"
+                      placeholder="Le rôle de l'IA"
                       style={[styles.input, { color: Colors.light.text }]}
                       placeholderTextColor={Colors.subduedTextColor}
                       value={customIaRole}

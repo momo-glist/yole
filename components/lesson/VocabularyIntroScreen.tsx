@@ -231,7 +231,7 @@ const VocabularyIntroScreen = ({
               pressed && !!currentCard ? styles.pressedButton : null,
             ]}
           >
-            <ThemedText style={styles.gradeButtonText}>Reéssayé</ThemedText>
+            <ThemedText style={styles.gradeButtonText}>Réessayer</ThemedText>
           </Pressable>
 
           <Pressable

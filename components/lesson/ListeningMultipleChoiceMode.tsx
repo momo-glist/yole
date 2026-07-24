@@ -26,7 +26,7 @@ export default function ListeningMultipleChhoiceMode({
     <View style={{ flex: 1 }}>
       <View style={styles.promptContainer}>
         <ThemedText type="subtitle" style={styles.sectionTitle}>
-          Qu'as tu entendu
+          Qu'as-tu entendu ?
         </ThemedText>
       </View>
       <ScrollView

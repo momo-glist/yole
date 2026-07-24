@@ -46,7 +46,7 @@ export default function MultipleChoiceMode({
           }}
         >
           <ThemedText style={styles.sectionTitle} type="subtitle">
-            Choisisez votre réponse
+            Choisissez votre réponse
           </ThemedText>
         </Animated.View>
         <Animated.View
@@ -69,7 +69,7 @@ export default function MultipleChoiceMode({
           ]}
         >
           <ThemedText style={styles.sayItPrompt} type="subtitle">
-            Maintenant dites le en anglais
+            Maintenant dites-le en anglais
           </ThemedText>
         </Animated.View>
       </View>

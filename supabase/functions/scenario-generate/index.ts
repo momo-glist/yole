@@ -7,15 +7,15 @@ type ProfileRow = {
 };
 
 type ScenarioGenerateRequest = {
-  myROle?: string;
-  iaROle?: string;
+  myRole?: string;
+  airole?: string;
   sceneDescription: string;
 };
 
 type Difficulty = "Beginner" | "Intermediate" | "Advanced";
 
 type PhrasebookEntry = {
-  character: string;
+  characters: string;
   french: string;
 };
 
@@ -96,7 +96,7 @@ const normalizePhrasebook = (value: unknown): PhrasebookEntry[] => {
   ];
 };
 
-const normalizetext = (value: unknown, maxlen: number): string => {
+const normalizeText = (value: unknown, maxlen: number): string => {
   if (typeof value !== "string") return "";
   const trimmed = value.trim();
   if (!trimmed) return "";
@@ -170,9 +170,9 @@ Deno.serve(async (req) => {
     }
 
     const body = (await req.json()) as ScenarioGenerateRequest;
-    const sceneDescription = normalizetext(body.sceneDescription, 600);
-    const myRole = normalizetext(body.myRole, 80);
-    const iaRole = normalizetext(body.iaRole, 80);
+    const sceneDescription = normalizeText(body.sceneDescription, 600);
+    const myRole = normalizeText(body.myRole, 80);
+    const aiRole = normalizeText(body.airole, 80);
 
     if (!sceneDescription) {
       return new Response(

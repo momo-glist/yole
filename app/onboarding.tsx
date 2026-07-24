@@ -7,14 +7,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -34,11 +34,11 @@ export default function Onboarding() {
     {
       id: "debutant",
       title: "Débutant",
-      description: "Je connais quelque mots mais pas beaucoup",
+      description: "Je connais quelques mots mais pas beaucoup",
     },
     {
       id: "intermediaire",
-      title: "Intermediaire",
+      title: "Intermédiaire",
       description:
         "J'arrive à faire quelques conversations simples mais j'ai du mal à comprendre les natifs",
     },
@@ -80,7 +80,7 @@ export default function Onboarding() {
 
   const INTERESTS = [
     "La nourriture",
-    "Le businesse",
+    "Le business",
     "Le quotidien",
     "Les technologies",
     "L'art",
@@ -162,15 +162,15 @@ export default function Onboarding() {
   const renderStep0Name = () => (
     <View style={styles.stepContainer}>
       <ThemedText type="title" style={styles.title}>
-        {"Comment devons nous t'appéler ?"}
+        {"Comment devons-nous t'appeler ?"}
       </ThemedText>
       <ThemedText style={styles.subtitle}>
-        Votre nom sera utilisé pour personaliser votre expérience.
+        Votre nom sera utilisé pour personnaliser votre expérience.
       </ThemedText>
 
       <TextInput
         style={[styles.input, { color: color.text, borderColor: color.icon }]}
-        placeholder="Entré votre nom"
+        placeholder="Entrez votre nom"
         placeholderTextColor="#9CA3AF"
         value={name}
         onChangeText={setName}
@@ -182,7 +182,7 @@ export default function Onboarding() {
   const renderStep1Level = () => (
     <View style={styles.stepContainer}>
       <ThemedText type="title" style={styles.title}>
-        {"Quel est ton niveau d'anglais?"}
+        {"Quel est ton niveau d'anglais ?"}
       </ThemedText>
 
       <ScrollView
@@ -221,7 +221,7 @@ export default function Onboarding() {
   const renderStep2Motivation = () => (
     <View style={styles.stepContainer}>
       <ThemedText type="title" style={styles.title}>
-        {"Pourquoi voulez vous apprendre l'anglais?"}
+        {"Pourquoi voulez-vous apprendre l'anglais ?"}
       </ThemedText>
       <ThemedText style={styles.subtitle}>Cochez les cases.</ThemedText>
 
@@ -268,7 +268,7 @@ export default function Onboarding() {
   const renderStep3Interets = () => (
     <View style={styles.stepContainer}>
       <ThemedText type="title" style={styles.title}>
-        {"Qu'est ce qui vous intéresse?"}
+        {"Qu'est-ce qui vous intéresse ?"}
       </ThemedText>
       <ThemedText style={styles.subtitle}>Cochez les cases.</ThemedText>
 

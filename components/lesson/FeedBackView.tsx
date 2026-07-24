@@ -42,27 +42,29 @@ export default function FeedBackView({
           size={40}
           color={isCorrect ? "#34C759" : "#f44336"}
         />
-        <ThemedText style={styles.title}>
-          {isCorrect
-            ? "Bonne réponse"
-            : showRetryButton
-              ? "Mauvaise réponse"
-              : "Fin de la leçon"}
-        </ThemedText>
-        {!isCorrect && showRetryButton && (
-          <ThemedText
-            style={[styles.subtitle, { color: Colors.subduedTextColor }]}
-          >
-            Recommencez
+        <View style={styles.headerText}>
+          <ThemedText style={styles.title}>
+            {isCorrect
+              ? "Bonne réponse"
+              : showRetryButton
+                ? "Mauvaise réponse"
+                : "Fin de la leçon"}
           </ThemedText>
-        )}
-        {showCorrectAnswer && (
-          <ThemedText
-            style={[styles.subtitle, { color: Colors.subduedTextColor }]}
-          >
-            Voici ce que vous devrez dire la prochaine fois
-          </ThemedText>
-        )}
+          {!isCorrect && showRetryButton && (
+            <ThemedText
+              style={[styles.subtitle, { color: Colors.subduedTextColor }]}
+            >
+              Recommencez
+            </ThemedText>
+          )}
+          {showCorrectAnswer && (
+            <ThemedText
+              style={[styles.subtitle, { color: Colors.subduedTextColor }]}
+            >
+              Voici ce que vous devrez dire la prochaine fois
+            </ThemedText>
+          )}
+        </View>
       </View>
       {/* Transcription feedback */}
 
@@ -76,7 +78,7 @@ export default function FeedBackView({
           </View>
           <View style={styles.transcriptionRow}>
             <ThemedText style={styles.transcriptionLabel}>
-              tu as dis:
+              Tu as dit :
             </ThemedText>
             <ThemedText
               style={[
@@ -101,8 +103,7 @@ export default function FeedBackView({
               color={Colors.primaryAccentColor}
             />
             <ThemedText style={styles.correctAnswerLabel}>
-              {" "}
-              La reponse :{" "}
+              La réponse :
             </ThemedText>
           </View>
           <View style={styles.correctAnswerContent}>
@@ -128,7 +129,7 @@ export default function FeedBackView({
             >
               <Ionicons name="refresh" size={20} color="#fff" />
               <ThemedText style={styles.retryButtonText}>
-                essaye de nouveau, il te reste {maxAttempt - attempCount}
+                Essayez de nouveau, il vous reste {maxAttempt - attempCount}
               </ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
@@ -155,7 +156,7 @@ export default function FeedBackView({
             onPress={onContinue}
           >
             <ThemedText style={[styles.continueButtonText]}>
-              {isCorrect ? "continue" : "Question suivante"}
+              {isCorrect ? "Continuer" : "Question suivante"}
             </ThemedText>
             <Ionicons name="arrow-forward" size={20} color="#fff" />
           </TouchableOpacity>

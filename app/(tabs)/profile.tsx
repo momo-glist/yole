@@ -25,18 +25,18 @@ export default function ProfileContent() {
       const { error } = await supabase.auth.signOut();
       if (error) {
         await supabase.auth.signOut({ scope: "local" });
-        Alert.alert("Deconnexion reussi");
+        Alert.alert("Déconnexion réussie");
         return;
       }
-      Alert.alert("Deconnexion reussi");
+      Alert.alert("Déconnexion réussie");
     } catch (error) {
       try {
         await supabase.auth.signOut({ scope: "local" });
-        Alert.alert("Deconnexion reussi");
+        Alert.alert("Déconnexion réussie");
       } catch (error) {
         Alert.alert(
-          "Deconnexion impossible",
-          "S'il vous plait redemarer l'application",
+          "Déconnexion impossible",
+          "S'il vous plaît redémarrer l'application",
         );
       }
     }
@@ -52,7 +52,7 @@ export default function ProfileContent() {
         <View
           style={[styles.header, { borderBottomColor: Colors.borderColor }]}
         >
-          <ThemedText style={styles.headerTitle}>Profile</ThemedText>
+          <ThemedText style={styles.headerTitle}>Profil</ThemedText>
         </View>
         <ScrollView
           contentContainerStyle={styles.scrollContainer}
@@ -106,7 +106,7 @@ export default function ProfileContent() {
               <ThemedText
                 style={[styles.statLabel, { color: Colors.subduedTextColor }]}
               >
-                Minutes de paroles
+                Minutes de parole
               </ThemedText>
             </View>
 
@@ -124,7 +124,7 @@ export default function ProfileContent() {
               <ThemedText
                 style={[styles.statLabel, { color: Colors.subduedTextColor }]}
               >
-                La serie du jour
+                La série du jour
               </ThemedText>
             </View>
           </View>
@@ -145,14 +145,14 @@ export default function ProfileContent() {
               <Ionicons name="star" size={24} color="#fff" />
               <View style={styles.premiumText}>
                 <ThemedText style={styles.premiumTitle}>
-                  {isPremium ? "Pass premium activé" : "Passé au pack premium"}
+                  {isPremium ? "Pass premium activé" : "Passer au pack premium"}
                 </ThemedText>
                 <ThemedText style={styles.premiumSubtitle}>
                   {isPremium
                     ? premiumExpiresAt
-                      ? `Votre pass premium fini ${new Date(premiumExpiresAt).toLocaleDateString()}`
-                      : "Fonctionnalités du passe premium debloquéés"
-                    : "Débloqués l'accès de tous les leçons"}
+                      ? `Votre pass premium finit le ${new Date(premiumExpiresAt).toLocaleDateString()}`
+                      : "Fonctionnalités du pass premium débloquées"
+                    : "Débloquer l'accès à toutes les leçons"}
                 </ThemedText>
               </View>
             </View>
@@ -161,7 +161,7 @@ export default function ProfileContent() {
 
           {/* Settings Section */}
           <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>Paramettre</ThemedText>
+            <ThemedText style={styles.sectionTitle}>Paramètres</ThemedText>
             <View
               style={[
                 styles.menuCard,
@@ -175,7 +175,7 @@ export default function ProfileContent() {
                 style={styles.menuItem}
                 onPress={() =>
                   Alert.alert(
-                    "Paramettres",
+                    "Paramètres",
                     "Langue, notifications et préférences",
                   )
                 }
@@ -187,7 +187,7 @@ export default function ProfileContent() {
                     color={Colors.subduedTextColor}
                   />
                   <ThemedText style={styles.menuItemTitle}>
-                    Paramettre application
+                    Paramètres de l'application
                   </ThemedText>
                 </View>
                 <Ionicons
@@ -206,7 +206,7 @@ export default function ProfileContent() {
                     size={24}
                     color={Colors.subduedTextColor}
                   />
-                  <ThemedText style={styles.menuItemTitle}>Aides</ThemedText>
+                  <ThemedText style={styles.menuItemTitle}>Aide</ThemedText>
                 </View>
                 <Ionicons
                   name="chevron-forward"
@@ -222,7 +222,7 @@ export default function ProfileContent() {
             style={[styles.signOutButton, { borderColor: Colors.borderColor }]}
           >
             <Ionicons name="log-out-outline" size={20} color="#DC2626" />
-            <ThemedText style={styles.signOutText}>Deconnexion</ThemedText>
+            <ThemedText style={styles.signOutText}>Déconnexion</ThemedText>
           </TouchableOpacity>
         </ScrollView>
       </View>

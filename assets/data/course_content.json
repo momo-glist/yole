@@ -110,16 +110,16 @@
                   "id": 2,
                   "french": "Salut",
                   "english": {
-                    "characters": "Hi there",
-                    "ipa": "Hi there",
+                    "characters": "Hi",
+                    "ipa": "Haɪ",
                     "words": [
                       {
                         "characters": "hi",
-                        "ipa": "hi",
+                        "ipa": "haɪ",
                         "french": "salut"
                       }
                     ],
-                    "breakdown": "Casual borrowed greeting from french."
+                    "breakdown": "Salutation informelle, équivalent à 'Salut' en français."
                   }
                 },
                 {

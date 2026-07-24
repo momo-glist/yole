@@ -5,14 +5,14 @@ import * as Speech from "expo-speech";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Dimensions, Pressable, StyleSheet, View } from "react-native";
 import {
-  Gesture,
-  GestureDetector,
-  ScrollView,
+    Gesture,
+    GestureDetector,
+    ScrollView,
 } from "react-native-gesture-handler";
 import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "../ThemedText";
@@ -226,7 +226,7 @@ export default function SentenceBreackDownCard({
 
           <View style={styles.wordHintContainer}>
             <ThemedText style={styles.wordHintText}>
-              Appuie sur le mot pour voir sa signification
+              Appuyez sur le mot pour voir sa signification
             </ThemedText>
           </View>
 

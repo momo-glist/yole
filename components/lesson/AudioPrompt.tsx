@@ -2,12 +2,12 @@ import { Question } from "@/constants/CourseData";
 import { Colors } from "@/constants/theme";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import {
-  Animated,
-  Platform,
-  Pressable,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    Animated,
+    Platform,
+    Pressable,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { ThemedText } from "../ThemedText";
 import AudioWaveForme from "./AudioWaveForm";
@@ -129,7 +129,7 @@ export default function AudioPrompt({
           <View style={styles.recordingPromptTop}>
             <ThemedText style={styles.recordingPromptText}>
               {isRecognizing
-                ? "Donnez votre reponse"
+                ? "Donnez votre réponse"
                 : "Tapez sur le micro pour commencer"}
             </ThemedText>
           </View>
@@ -157,7 +157,7 @@ export default function AudioPrompt({
                 },
               ]}
             >
-              <ThemedText style={styles.revealButtonText}>Ecoute...</ThemedText>
+              <ThemedText style={styles.revealButtonText}>Écoute...</ThemedText>
             </Animated.View>
           </View>
         ) : showEnglish ? (
@@ -176,7 +176,7 @@ export default function AudioPrompt({
               hitSlop={{ top: 10, bottom: 10, left: 20, right: 20 }}
             >
               <ThemedText style={styles.instructionText}>
-                Appuyer pour voir ce qui a été dit
+                Appuyez pour voir ce qui a été dit
               </ThemedText>
             </TouchableOpacity>
           )

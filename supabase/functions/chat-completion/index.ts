@@ -48,10 +48,15 @@ Deno.serve(async (req) => {
 
     const { messages, scenario, inputAudio } = await req.json();
 
+    console.log("Request received - scenario:", scenario?.id, "hasAudio:", inputAudio != null);
+
     const scenarioId = scenario?.id;
     const isFreeScenario = scenarioId === "1";
 
+    console.log("Scenario ID:", scenarioId, "isFreeScenario:", isFreeScenario);
+
     if (!isFreeScenario) {
+      console.log("Checking premium status for user:", user.id);
       const { data: profile, error: profileError } = await userClient
         .from("profiles")
         .select("is_premium, premium_expires_at")
@@ -59,6 +64,7 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       if (profileError) {
+        console.error("Profile error:", profileError);
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -71,7 +77,10 @@ Deno.serve(async (req) => {
         !!typeProfileRow?.is_premium &&
         (!premiumExpiresAt || new Date(premiumExpiresAt) > new Date());
 
+      console.log("Premium check - isPremium:", isPremium, "profile:", typeProfileRow);
+
       if (!isPremium) {
+        console.log("User is not premium, returning 403");
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },

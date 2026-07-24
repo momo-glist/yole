@@ -221,8 +221,7 @@ export default function LessonContent({
   };
 
   const playAudio = () => {
-    const textToSpeack =
-      currentQuestion.english.characters || currentQuestion.english.ipa;
+    const textToSpeack = currentQuestion.english.characters || currentQuestion.english.ipa;
 
     if (isSpeechPlaying) {
       Speech.stop();
@@ -297,7 +296,13 @@ export default function LessonContent({
     setShowResults(true);
 
     const punctuationRegex = /[.,\/#!$%\^&\*;:{}=\-_`~()?]/g;
-    const rawExpected = selectedSentences?.english.characters || "";
+    // Pour multiple_choice, utiliser le texte de la question principale (ce que l'utilisateur a entendu)
+    // Pour listening_mc, utiliser aussi le texte de la question principale
+    // Pour single_response, utiliser le texte de l'option
+    const rawExpected = 
+      currentQuestion.type === "multiple_choice" || currentQuestion.type === "listening_mc"
+        ? currentQuestion.english.characters || ""
+        : selectedSentences?.english.characters || "";
     const expected = rawExpected
       .toLowerCase()
       .replace(punctuationRegex, "")
@@ -610,9 +615,9 @@ export default function LessonContent({
     <View style={styles.container}>
       <ConfirmDialog
         visible={exitConfirmVisible}
-        title={"Quitter la léçon"}
+        title={"Quitter la leçon"}
         description={
-          "Etes vous sûr de vouloir quitter la leçon? Votre progression ne sera pas sauvegardée."
+          "Êtes-vous sûr de vouloir quitter la leçon ? Votre progression ne sera pas sauvegardée."
         }
         confirmLabel={"Quitter"}
         cancelLabel={"Annuler"}
@@ -755,7 +760,7 @@ export default function LessonContent({
               isCorrect={isCorrect}
               onContinue={nextQuestion}
               onRetry={
-                attempCount < MAX_ATTEMPTS && isCorrect
+                attempCount < MAX_ATTEMPTS && !isCorrect
                   ? handleRetry
                   : undefined
               }

@@ -8,15 +8,15 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as Speech from "expo-speech";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Animated,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import ConfettiCannon from "react-native-confetti-cannon";
 import { ScrollView, TextInput } from "react-native-gesture-handler";
@@ -61,12 +61,22 @@ export default function ConversationMode({
 
   useEffect(() => {
     return () => {
+      console.log("Cleanup useEffect running, recordingRef.current:", recordingRef.current);
       Speech.stop();
       if (recordingRef.current) {
-        recordingRef.current.stopAndUnloadAsync();
+        recordingRef.current.getStatusAsync().then((status) => {
+          if (status.isRecording || status.canRecord) {
+            recordingRef.current?.stopAndUnloadAsync().catch(() => {
+              // Ignore errors during cleanup
+            });
+          }
+          recordingRef.current = null;
+        }).catch(() => {
+          recordingRef.current = null;
+        });
       }
     };
-  });
+  }, []);
 
   useEffect(() => {
     setTimeout(() => {
@@ -169,9 +179,11 @@ export default function ConversationMode({
   };
 
   const handleRecordingToggle = async () => {
+    console.log("handleRecordingToggle called, isRecording:", isRecording, "isLoading:", isLoading);
     if (isLoading) return;
 
     if (!isRecording) {
+      console.log("Starting recording...");
       try {
         Speech.stop();
 
@@ -192,7 +204,7 @@ export default function ConversationMode({
         });
 
         const preset = Audio.RecordingOptionsPresets.HIGH_QUALITY;
-        const { recording } = await Audio.Recording.createAsync({
+        const result = await Audio.Recording.createAsync({
           ...preset,
           ios: {
             ...preset.ios,
@@ -208,8 +220,13 @@ export default function ConversationMode({
           },
         });
 
+        console.log("createAsync result:", result);
+        const { recording } = result;
+        console.log("Extracted recording:", recording);
         recordingRef.current = recording;
+        console.log("Set recordingRef.current:", recordingRef.current);
         setIsRecording(true);
+        console.log("Recording started successfully");
       } catch (error) {
         console.error("Failed to start recording:", error);
         recordingRef.current = null;
@@ -220,18 +237,32 @@ export default function ConversationMode({
     }
 
     // Stop + Send audio
+    console.log("Stopping recording...");
 
     try {
+      console.log("Entered try block");
       const recording = recordingRef.current;
+      console.log("Got recording ref:", recording);
       if (!recording) {
+        console.log("No recording found, returning");
         setIsRecording(false);
         return;
       }
       setIsRecording(false);
 
-      await recording.stopAndUnloadAsync();
+      console.log("About to call stopAndUnloadAsync...");
+      try {
+        await recording.stopAndUnloadAsync();
+        console.log("stopAndUnloadAsync completed");
+      } catch (stopError) {
+        console.error("Error in stopAndUnloadAsync:", stopError);
+        throw stopError;
+      }
       const uri = recording.getURI();
+      console.log("Got URI:", uri);
       recordingRef.current = null;
+
+      console.log("Recording stopped, URI:", uri);
 
       if (!uri) {
         setIsLoading(false);
@@ -246,6 +277,8 @@ export default function ConversationMode({
         encoding: FileSystem.EncodingType.Base64,
       });
 
+      console.log("Audio read, length:", base64Audio.length);
+
       const voiceMessageId = Date.now().toString();
       setMessages((prev) => [
         ...prev,
@@ -253,6 +286,7 @@ export default function ConversationMode({
       ]);
       setIsLoading(true);
 
+      console.log("Calling chat completion with audio...");
       const data = await callChatCompletion({
         messageList: messages,
         inputAudio: {
@@ -260,6 +294,7 @@ export default function ConversationMode({
           format: "wav",
         },
       });
+      console.log("Chat completion response:", data);
       handleAssistantData(data, { replaceUserMessageId: voiceMessageId });
       void recordConversationTurn();
     } catch (error) {
